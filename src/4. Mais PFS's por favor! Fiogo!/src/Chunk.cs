@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Drawing;
 using System.Numerics;
 using System.Reflection.Metadata;
@@ -12,6 +13,7 @@ public class Chunk : IDisposable
     public static uint Width = 20, Height = 10;
 
     public static List<Chunk> Chunks = new List<Chunk>();
+    int ChunkID = 0;
 
     List<Vector3> vertices = new List<Vector3>();
     List<uint> triangulos = new List<uint>();
@@ -23,14 +25,37 @@ public class Chunk : IDisposable
 
     private Mesh _mesh = null!;
 
+    public static bool working = false;
+    bool ready = false;
+
     public void Start()
     {
         Chunks.Add(this);
+    }
+
+    public void Update()
+    {
+        if (working == false && ready == false)
+        {
+            ready = true;
+            StartFunction();
+        }
+    }
+
+    public void StartFunction()
+    {
+        working = true;
 
         vertex = new Vertex();
 
         map = new Block[Width, Height, Width];
 
+        var e1 = CalculateMap();
+        while (e1.MoveNext()) { }
+    }
+
+    public IEnumerator CalculateMap()
+    {
         for (int x = 0; x < Width; x++)
         {
             for (int y = 0; y < Height; y++)
@@ -49,10 +74,13 @@ public class Chunk : IDisposable
             }
         }
 
-        CalculateMesh();
+        yield return 0;
+
+        var e2 = CalculateMesh();
+        while (e2.MoveNext()) { }
     }
 
-    public void CalculateMesh()
+    public IEnumerator CalculateMesh()
     {
         for (int x = 0; x < Width; x++)
         {
@@ -96,6 +124,10 @@ public class Chunk : IDisposable
         vertex.TexCoords = uvs.ToArray();
 
         _mesh = new Mesh(vertex);
+
+        yield return 0;
+
+        working = false;
     }
 
     public void AddCubeLeft(int x, int y, int z, Block b)
